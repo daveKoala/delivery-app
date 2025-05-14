@@ -31,20 +31,46 @@ By keeping related behaviour together, I reduce mental overhead, simplify debugg
 - The way 'van' is used in the task description and from personal experience there will be more than one mode of delivery (Bikes, Moped, etc)
 - I can envision different modes will have different methods of calculating courier costs
 
-### Planning
+## Planning
 
 - I need modes of delivery (Van, bike, etc)
 - I need a way to have a common method of calculating courier costs, that can be extended or overwritten
 - I am acutely aware that OOP can get overly complex with interfaces/abstract classes, inheritance, traits and composition. So maintainability and reducing cognitive load on developers is a factor
 - I need to be able to test not just the whole module but also individual parts
 
-### Patterns
+## Design Overview
 
-I make use of the Strategy pattern and 'builder' functions
+**1. Strategy Pattern**
+
+- The core logic for calculating costs is implemented using the Strategy pattern.
+- TransportTypeInterface defines the required methods.
+- TransportAbstractClass provides a base implementation.
+- Concrete transport classes like BikeClass, VanClass, and MopedClass can override the base calculation if needed.
+
+This makes it easy to introduce new transport methods later without modifying existing logic.
+
+**2. Delivery Class (Coordinator)**
+
+- The DeliveryClass acts as a wrapper and orchestrator:
+- It receives a transport strategy (e.g. BikeClass) at construction.
+- Jobs are added via addJob() or setJobs() methods.
+- It delegates cost calculations to the transport strategy via getQuote().
+
+This class currently performs simple delegation, but is deliberately designed to grow in responsibility — for example, adding validation, logging, business rules, or multi-pickup coordination in future.
+
+**3. Job Abstraction**
+
+Each Job represents a single drop-off:
+
+- Distance (in miles)
+  -Cost per mile
+- Whether an additional driver is required
+
+Jobs are passed to the transport strategy, where the actual pricing logic resides.
 
 ## Limitations and Caveats
 
-- This prototype omits input validation and assumes well-formed user data.
+- This prototype omits input validation and assumes well-formed user data. For example, The number of jobs is not constrained to a max of 5. This can be added is needed to the Delivery class, or with input validation
 - Logging, error reporting, and config integration have been intentionally left out for brevity.
 - Authentication and authorization (e.g., Auth0) are not implemented but would be essential in a production environment.
 - The transport strategy is hard-coded rather than dynamically resolved from a service container or configuration.
